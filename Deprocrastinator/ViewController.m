@@ -14,6 +14,7 @@
 @property (weak, nonatomic) IBOutlet UITableView *taskTableView;
 @property NSMutableArray *toDoList;
 @property NSIndexPath *indexToDelete;
+@property BOOL inEditMode;
 
 @end
 
@@ -23,8 +24,11 @@
     [super viewDidLoad];
     self.toDoList = [[NSMutableArray alloc] initWithObjects:@"Walk the dog", @"Do the dishes", @"Kick the cat", @"Give Max a high five", nil];
     self.taskTableView.allowsMultipleSelectionDuringEditing = NO;
-
+    self.inEditMode = NO;
 }
+
+#pragma mark EditTable Methods
+
 - (IBAction)onUserSwipe:(UISwipeGestureRecognizer *)sender {
     if (sender.state == UIGestureRecognizerStateEnded) {
         CGPoint swipePoint = [sender locationInView:self.taskTableView];
@@ -47,20 +51,29 @@
 }
 
 -(void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath {
-
     NSString *task = [self.toDoList objectAtIndex:sourceIndexPath.row];
     [self.toDoList removeObject:task];
     [self.toDoList insertObject:task atIndex:destinationIndexPath.row];
     [self.taskTableView reloadData];
 }
 
--(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
-    return [self.toDoList count];
-}
+
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     return YES;
+}
+
+- (IBAction)onEditButtonPressed:(UIButton *)sender {
+    if (!self.inEditMode) {
+        [sender setTitle:@"Done" forState:UIControlStateNormal];
+        [self.taskTableView setEditing:YES animated:YES];
+        self.inEditMode = YES;
+    } else {
+        [sender setTitle:@"Edit" forState:UIControlStateNormal];
+        [self.taskTableView setEditing:NO animated:YES];
+        self.inEditMode = NO;
+    }
+
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -75,8 +88,6 @@
     }
 }
 
-
-
 -(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     NSLog(@"alert view dismiss was called");
     if (buttonIndex == 1) {
@@ -85,20 +96,18 @@
     }
 }
 
--(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+#pragma mark StandardTableViewMethods
+-(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return [self.toDoList count];
+}
+
+-(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
     cell.textLabel.text = [self.toDoList objectAtIndex:indexPath.row];
-
     return cell;
 }
-- (IBAction)onEditButtonPressed:(UIButton *)sender {
-    [sender setTitle:@"Done" forState:UIControlStateNormal];
-    [self.taskTableView setEditing:YES animated:YES];
-}
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
     cell.textLabel.textColor = [UIColor greenColor];
 }
